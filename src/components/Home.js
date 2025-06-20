@@ -1,15 +1,63 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function Home() {
   const [amount, setAmount] = useState('');
   const [result, setResult] = useState(null);
 
   const [fromCurrency, setFromCurrency] = useState('$');
-  const currencyOptions = ['$', '€', '£', 'RM', '¥'];
+  const [toCurrency, setToCurrency] = useState('RM');
+  const [conversionRates, setConversionRates] = useState([]);
+
+  const [currencyOptions, setCurrencyOptions] = useState([]);
+
+  useEffect(() => {
+    const rates = localStorage.getItem('currencyRates');
+    if (!rates) return;
+
+    const parsedRates = JSON.parse(rates);
+    setConversionRates(parsedRates);
+
+    const co = Array.from(
+      new Set(parsedRates.flatMap((rate) => [rate.from, rate.to]))
+    );
+    setCurrencyOptions(co);
+
+    const fromCurr = localStorage.getItem('fromCurrency');
+    const toCurr = localStorage.getItem('toCurrency');
+
+    setFromCurrency(fromCurr);
+    setToCurrency(toCurr);
+  }, []);
 
   const handleConvert = () => {
-    const converted = parseFloat(amount || 0) * 130; // USD to BDT
-    setResult(converted);
+    let rate = null;
+
+    for (const cr of conversionRates) {
+      if (cr.from === fromCurrency && cr.to === toCurrency) {
+        rate = cr.rate;
+        break;
+      } else if (cr.from === toCurrency && cr.to === fromCurrency) {
+        rate = 1 / cr.rate;
+        break;
+      }
+    }    
+
+    if (rate !== null) {
+      const converted = parseFloat(amount || 0) * rate;
+      setResult(converted);
+    } else {
+      setResult(0);
+    }
+  };
+
+  const onFromChange = (e) => {
+    setFromCurrency(e.target.value);
+    localStorage.setItem('fromCurrency', e.target.value);
+  };
+
+  const onToChange = (e) => {
+    setToCurrency(e.target.value);
+    localStorage.setItem('toCurrency', e.target.value);
   };
 
   return (
@@ -17,7 +65,7 @@ export default function Home() {
       <div className="flex items-center space-x-2 mb-4">
         <select
           value={fromCurrency}
-          onChange={(e) => setFromCurrency(e.target.value)}
+          onChange={onFromChange}
           className="bg-blue-100 text-black px-3 py-2 rounded"
         >
           {currencyOptions.map((symbol) => (
@@ -42,8 +90,8 @@ export default function Home() {
           CONVERT
         </button>
         <select
-          value={fromCurrency}
-          onChange={(e) => setFromCurrency(e.target.value)}
+          value={toCurrency}
+          onChange={onToChange}
           className="bg-blue-100 text-black px-3 py-2 rounded"
         >
           {currencyOptions.map((symbol) => (
@@ -55,7 +103,7 @@ export default function Home() {
       </div>
       {result !== null && (
         <div className="border px-4 py-2 rounded text-center text-xl">
-          ৳ {result.toFixed(2)}
+          {toCurrency} {result.toFixed(2)}
         </div>
       )}
     </div>
