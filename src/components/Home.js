@@ -50,7 +50,15 @@ export default function Home() {
       setResult(converted);
 
       if (converted !== 0) {
-        const logEntry = `${description || "Unnamed transaction"} | ${amount} ${fromCurrency} = ${converted.toFixed(2)} ${toCurrency}`;
+        const formattedTime = new Date(Date.now()).toLocaleString("en-GB", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "2-digit",
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        });
+        const logEntry = `${formattedTime} | ${description || "Unnamed transaction"} | ${amount} ${fromCurrency} = ${converted.toFixed(2)} ${toCurrency}`;
 
         setLogs((prevLogs) => {
           const _logs = [logEntry, ...prevLogs];
@@ -127,7 +135,7 @@ export default function Home() {
         <div className="flex-1" />
         <button onClick={onClearLogs}>🗑️</button>
       </div>
-      <div className="overflow-y-auto border rounded px-3 py-2 mt-2 bg-white shadow-sm" style={{ height: 300 }}>
+      <div className="overflow-y-auto border rounded px-3 py-2 mt-2 bg-white shadow-sm" style={{ height: 200 }}>
         {logs.length === 0 ? (
           <p className="text-sm text-gray-500">No conversions yet.</p>
         ) : (
